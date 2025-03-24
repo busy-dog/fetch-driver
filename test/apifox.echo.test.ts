@@ -1,13 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { isError } from "@busymango/is-esm";
-import { iSearchParams } from "@busymango/utils";
+import { isError } from "remeda";
 
 import type DriveContext from "../src/context";
 import FetchDriver from "../src/fetch";
 import { fetch2curl } from "../src/fetch2curl";
 import type { DriveReport } from "../src/model";
-
+import { iSearchParams } from "../src/utils";
 const { drive } = new FetchDriver();
 
 const host = "https://echo.apifox.com";

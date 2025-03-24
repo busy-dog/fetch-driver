@@ -1,5 +1,4 @@
-import { iSearchParams } from "@busymango/utils";
-
+import { iSearchParams } from "../src/utils";
 import drive from "./request";
 
 export async function query(params: object) {

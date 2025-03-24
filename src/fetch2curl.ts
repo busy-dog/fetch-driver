@@ -1,5 +1,5 @@
-import { isFormData, isNil, isObject, isString } from "@busymango/is-esm";
-import { compact } from "@busymango/utils";
+import { isNullish, isObjectType, isString } from "remeda";
+import { compact, isFormData } from "./utils";
 
 import type { FetchMethod } from "./model";
 import { methods } from "./model";
@@ -21,7 +21,7 @@ export const generate = {
    * @returns {HeaderParams} An Object with the header info
    */
   header: ({ headers }: RequestInit = {}): string | void => {
-    if (isNil(headers)) return;
+    if (isNullish(headers)) return;
     const current = new Headers(headers);
     current.delete("content-length");
     const format = (name: string, val: string) =>
@@ -47,7 +47,7 @@ export const generate = {
     // }
     function escape(body?: BodyInit): string | void {
       if (isString(body)) return body.replace(/'/g, `'\\''`);
-      if (isObject(body)) return escape(JSON.stringify(body));
+      if (isObjectType(body)) return escape(JSON.stringify(body));
     }
     const data = escape(body ?? undefined);
     if (isString(data)) return `--data-binary '${data}'`;

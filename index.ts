@@ -9,6 +9,11 @@ export { default as DriveContext } from "./src/context";
 export * from "./src/error";
 export { fetch2curl } from "./src/fetch2curl";
 export * from "./src/model";
-export * from "./src/utils";
+export {
+  createMiddleware,
+  downloader,
+  isNonRawBodyInit,
+  isRawTextBody,
+} from "./src/utils";
 
 export default FetchDriver;

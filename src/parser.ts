@@ -3,11 +3,11 @@
  * @description fetch type define
  */
 
-import { isFinite, isFunction } from "@busymango/is-esm";
+import { isFunction } from "remeda";
 
 import type DriveContext from "./context";
 import type { ReceiverFunc } from "./model";
-import { isRawTextBody } from "./utils";
+import { isFinite, isRawTextBody } from "./utils";
 
 type ReadableValue = ReadableStreamReadValueResult<Uint8Array<ArrayBufferLike>>;
 

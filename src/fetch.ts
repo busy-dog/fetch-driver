@@ -3,7 +3,7 @@
  * @description fetch core
  */
 
-import { isArray, isObject } from "@busymango/is-esm";
+import { isArray, isObjectType } from "remeda";
 
 import { compose } from "./compose";
 import DriveContext from "./context";
@@ -25,7 +25,7 @@ function over<T>(
   data?: object,
   init?: RequestInit & ExtraOptions<T>,
 ): DriveOptions<T> {
-  if (isObject(first)) return first;
+  if (isObjectType(first)) return first;
   return { api: first, data, ...init };
 }
 

@@ -6,18 +6,15 @@ import mime from "mime";
 
 import {
   isArray,
-  isFinite,
+  isNullish,
   isFunction,
-  isNil,
-  isNonEmptyString,
   isPlainObject,
   isString,
-  isURLSearchParams,
-} from "@busymango/is-esm";
-import { iSearchParams } from "@busymango/utils";
+  
+} from "remeda";
 
 import type { DriveContextOptions } from "./model";
-import { isNonRawBodyInit } from "./utils";
+import { isFinite, iSearchParams, isURLSearchParams, isNonRawBodyInit, isNonEmptyString } from "./utils";
 
 export default class DriveContext<T = unknown> {
   /** the fetch src */
@@ -69,7 +66,7 @@ export default class DriveContext<T = unknown> {
   private initBody = () => {
     const { body, headers } = this.options;
 
-    if (isNil(body)) {
+    if (isNullish(body)) {
       const { data } = this;
       if (isNonRawBodyInit(data)) {
         this.options.body = data;
@@ -88,7 +85,7 @@ export default class DriveContext<T = unknown> {
   private initMethod = () => {
     if (!this.options.method) {
       const { body } = this.options;
-      this.options.method = isNil(body) ? "GET" : "POST";
+      this.options.method = isNullish(body) ? "GET" : "POST";
     }
   };
 

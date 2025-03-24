@@ -1,7 +1,7 @@
 import type { DriveMiddleware } from "@busymango/fetch-driver";
 import { downloader, src2name } from "@busymango/fetch-driver";
-import { isBlob } from "@busymango/is-esm";
-import { iSearchParams } from "@busymango/utils";
+
+import { isBlob, iSearchParams } from "../../src/utils";
 
 const disposition: DriveMiddleware = async (context, next) => {
   await next();
