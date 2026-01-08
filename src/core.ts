@@ -1,18 +1,29 @@
-import { concat, filter, isArray, isObjectType, map, pipe } from "remeda";
+import {
+  concat,
+  filter,
+  isArray,
+  isObjectType,
+  isString,
+  map,
+  pipe,
+} from "remeda";
 
 import { compose } from "./compose";
-import DriveContext from "./context";
+import { DriveContext } from "./context";
 import { isMatch } from "./match";
 import { parser } from "./parser";
 import type {
+  BodyParseFunc,
   DriveFunc,
-  DriveHooks,
-  DriveMiddleware,
-  DriveOptions,
+  DriverHooks,
+  DriverMiddleware,
+  DriverOptions,
+  DriverParams,
   ExtraOptions,
   FetchContext,
   FirstParam,
-  UseDriveMiddleware,
+  MiddlewarePattern,
+  UseDriverMiddleware,
 } from "./types";
 import { methods } from "./types";
 
@@ -20,27 +31,29 @@ function over<T>(
   first: FirstParam<T>,
   data?: object,
   init?: RequestInit & ExtraOptions<T>,
-): DriveOptions<T> {
+): DriverOptions<T> {
   if (isObjectType(first)) return first;
   return { api: first, data, ...init };
 }
 
 type DriveParams<T> = Parameters<typeof over<T>>;
 
-type DriverParams =
-  | UseDriveMiddleware[]
-  | { use?: UseDriveMiddleware[]; hooks?: DriveHooks };
-
 export class Driver {
-  private hooks?: DriveHooks;
+  private hooks?: DriverHooks;
 
-  private middlewares: UseDriveMiddleware[];
+  private randomId: () => string;
+
+  private parser: <T>() => BodyParseFunc<T>;
+
+  private middlewares: UseDriverMiddleware[];
 
   constructor(opts: DriverParams = {}) {
     const params = (() => (isArray(opts) ? { use: opts } : opts))();
 
     this.hooks = params.hooks;
     this.middlewares = params.use ?? [];
+    this.parser = params.parser ?? parser;
+    this.randomId = params.randomId ?? DriveContext.randomId;
 
     methods.forEach((method) => {
       const name = method.toLowerCase() as Lowercase<typeof method>;
@@ -49,7 +62,7 @@ export class Driver {
     });
   }
 
-  public use = (pattern: string, middleware: DriveMiddleware) => {
+  public use = (pattern: MiddlewarePattern, middleware: DriverMiddleware) => {
     this.middlewares.push([pattern, middleware]);
     return this;
   };
@@ -60,25 +73,25 @@ export class Driver {
     data,
     timeout,
     receiver,
-    parse = parser(),
+    parse = this.parser<T>(),
     stringify = JSON.stringify,
     ...init
-  }: DriveOptions<T>) => {
-    const context = new DriveContext<T>(api, data, init);
+  }: DriverOptions<T>) => {
+    const { middlewares, randomId } = this;
 
-    const path = (() => {
-      try {
-        return new URL(api).pathname;
-      } catch (_) {
-        return api;
-      }
-    })();
+    const context = new DriveContext<T>(api, {
+      ...init,
+      data,
+      id: randomId(),
+    });
 
     const matched = pipe(
-      use ?? [],
-      concat(this.middlewares),
-      filter(([pattern]) => isMatch(path, pattern)),
+      middlewares,
+      filter(([arg]) =>
+        isString(arg) ? isMatch(context.path, arg) : arg(context.clone()),
+      ),
       map(([, middleware]) => middleware),
+      concat(use ?? []),
     );
 
     const composed = compose(matched);
@@ -86,7 +99,7 @@ export class Driver {
     await composed(context, async () => {
       const { hooks } = this;
       await hooks?.beforeInit?.(context);
-      context.init({ stringify });
+      context.init();
       await hooks?.afterInit?.(context);
 
       context.initAbort(timeout);

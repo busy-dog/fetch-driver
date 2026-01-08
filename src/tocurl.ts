@@ -1,5 +1,5 @@
 import { compact, isBlob, isFormData } from "./shared";
-import { isNullish, isObjectType, isString } from "remeda";
+import { isNullish, isString } from "remeda";
 
 import type { FetchMethod } from "./types";
 import { methods } from "./types";
@@ -60,6 +60,11 @@ export const generate = {
         )
       ).join(" ");
     }
+    /**
+     * TODO isURLSearchParams isArrayBuffer
+     * @param body
+     * @returns
+     */
     async function escape(body?: BodyInit): Promise<string | void> {
       if (isString(body)) return body.replace(/'/g, "'\\''");
       if (isBlob(body)) {
@@ -67,10 +72,6 @@ export const generate = {
         const [, data] = base64.split(",");
         if (isString(data)) return data;
       }
-      if (isObjectType(body)) return escape(JSON.stringify(body));
-      // if (isArrayBuffer(body)) {
-      //   // TODO
-      // }
     }
     const data = await escape(body ?? undefined);
     if (isString(data)) return `--data-binary '${data}'`;

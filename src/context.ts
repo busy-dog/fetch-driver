@@ -6,7 +6,9 @@ import {
   toSearchParams,
 } from "./shared";
 import mime from "mime";
+import { nanoid } from "nanoid";
 import {
+  clone,
   isArray,
   isFunction,
   isNullish,
@@ -14,16 +16,20 @@ import {
   isString,
 } from "remeda";
 
-import type { DriveRequest } from "./types";
+import type { DataStringifyFunc, DriverRequest } from "./types";
 
 type InitParams = {
-  stringify: typeof JSON.stringify;
+  stringify: DataStringifyFunc;
 };
 
-export default class DriveContext<T = unknown> {
+export class DriveContext<T = unknown> {
   public api: string;
 
-  public req: DriveRequest;
+  public url: URL | null;
+
+  public path: string;
+
+  public req: DriverRequest;
 
   public data?: object;
 
@@ -36,12 +42,37 @@ export default class DriveContext<T = unknown> {
     body?: T;
   } = {};
 
-  constructor(api: string, data?: object, params?: RequestInit) {
-    const { headers, ...rest } = params ?? {};
+  static toURL = (api: string) => {
+    try {
+      return URL.parse(api);
+    } catch (_) {
+      return null;
+    }
+  };
+
+  static randomId = () => nanoid().replace(/-/g, "").slice(0, 8);
+
+  constructor(
+    api: string,
+    params?: RequestInit & {
+      id?: string;
+      data?: object;
+    },
+  ) {
+    const {
+      id = DriveContext.randomId(),
+      data,
+      headers,
+      ...rest
+    } = params ?? {};
 
     this.api = api;
     this.data = data;
+    this.url = DriveContext.toURL(api);
+    this.path = this.url?.pathname ?? api;
+
     this.req = {
+      id,
       ...rest,
       headers: new Headers(headers),
     };
@@ -88,6 +119,7 @@ export default class DriveContext<T = unknown> {
     this.initApi({ stringify });
     this.initBody({ stringify });
     this.initMethod({ stringify });
+    return this;
   };
 
   public initAbort = (timeout?: number) => {
@@ -100,25 +132,44 @@ export default class DriveContext<T = unknown> {
   };
 
   public decodeHeader = (response: Response) => {
+    const { res } = this;
     const { headers } = response;
     const type = headers.get("Content-Type");
-
-    if (isNonEmptyString(type)) {
-      const fields = type.split(";");
-
-      for (const iterator of fields) {
-        const { res } = this;
-        const extension = mime.getExtension(iterator);
-        if (isString(extension) && !isString(res?.type)) {
-          this.res!.type = extension;
+    if (res) {
+      if (isNonEmptyString(type)) {
+        const fields = type.split(";");
+        const params = toSearchParams(fields);
+        const charset = params?.get("charset");
+        if (isString(charset)) {
+          res.charset = charset;
+        }
+        for (const iterator of fields) {
+          const extension = mime.getExtension(iterator);
+          if (isString(extension) && !isString(res.type)) {
+            res.type = extension;
+          }
+        }
+      } else {
+        if (!isString(res.type)) {
+          res.type = "txt";
         }
       }
-
-      const params = toSearchParams(fields);
-      const charset = params?.get("charset");
-      if (isString(charset)) this.res.charset = charset;
     }
   };
-}
 
-export type { DriveContext };
+  public clone = () => {
+    const { api, url, path, req, data, res } = this;
+    const { headers, ...rest } = req;
+    return {
+      api,
+      url,
+      path,
+      req: {
+        headers: new Headers(headers),
+        ...clone(rest),
+      },
+      res: clone(res),
+      data: clone(data),
+    };
+  };
+}

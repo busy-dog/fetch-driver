@@ -1,14 +1,23 @@
+import { toSearchParams } from "../src/shared";
+import { isError } from "remeda";
 import { describe, expect, it } from "vitest";
 
-import { isError } from "remeda";
-
-import type DriveContext from "../src/context";
+import type { DriveContext } from "../src/context";
 import { Driver } from "../src/core";
-import type { DriveHooks } from "../src/types";
 import { toCurl } from "../src/tocurl";
-import { toSearchParams } from "../src/shared";
+import type { DriverHooks } from "../src/types";
 
-const { drive, request } = new Driver();
+// TODO 检查选项
+const driver = new Driver({
+  use: [],
+  hooks: {
+    beforeInit: async (_) => {},
+    afterInit: async (_) => {},
+    beforeParse: async (_) => {},
+  },
+});
+
+const { drive, request } = driver;
 
 const host = "https://echo.apifox.com";
 
@@ -16,7 +25,7 @@ const iSrc = (api: string) => `${host}${api}`;
 
 describe("HTTP 方法", () => {
   const headers = new Headers();
-  headers.append("User-Agent", "Apifox/1.0.0 (https://apifox.com)");
+
   headers.append("Accept", "*/*");
   headers.append("Host", "echo.apifox.com");
   headers.append("Connection", "keep-alive");
@@ -34,13 +43,9 @@ describe("HTTP 方法", () => {
       url: "http://echo.apifox.com/get?q1=v1&q2=v2",
       headers: {
         Accept: "*/*",
-        "Accept-Encoding": "br, gzip, deflate",
-        "Accept-Language": "*",
         Connection: "close",
         Host: "echo.apifox.com",
         "Sec-Fetch-Mode": "cors",
-        "User-Agent": "Apifox/1.0.0 (https://apifox.com)",
-        "X-From-Alb": "true",
       },
     });
   });
@@ -54,7 +59,7 @@ describe("HTTP 方法", () => {
         },
       };
 
-      class Hooks implements DriveHooks {
+      class Hooks implements DriverHooks {
         async beforeFetch(context: DriveContext) {
           const { api, req } = context;
           terminal.echo(await toCurl(api, req));
@@ -82,12 +87,9 @@ describe("HTTP 方法", () => {
         url: "http://echo.apifox.com/get",
         headers: {
           Accept: "*/*",
-          "Accept-Encoding": "br, gzip, deflate",
-          "Accept-Language": "*",
           Connection: "close",
           Host: "echo.apifox.com",
           "Sec-Fetch-Mode": "cors",
-          "X-From-Alb": "true",
         },
       });
     });
@@ -112,16 +114,28 @@ describe("HTTP 方法", () => {
       url: "http://echo.apifox.com/post",
       headers: {
         Accept: "*/*",
-        "Accept-Encoding": "br, gzip, deflate",
-        "Accept-Language": "*",
         Connection: "close",
         Host: "echo.apifox.com",
         "Sec-Fetch-Mode": "cors",
         "Content-Length": "54",
         "Content-Type": "application/json",
-        "User-Agent": "Apifox/1.0.0 (https://apifox.com)",
-        "X-From-Alb": "true",
       },
+    });
+  });
+
+  it("应当能正确处理 FormData", async () => {
+    const data = new FormData();
+    data.append("d", "deserunt");
+    data.append("dd", "adipisicing enim deserunt Duis");
+    expect(
+      await drive.post(iSrc("/post"), data, {
+        headers,
+        redirect: "follow",
+      }),
+    ).toMatchObject({
+      args: {},
+      form: {},
+      files: {},
     });
   });
 });
@@ -139,13 +153,9 @@ describe("动态内容", () => {
       form: {},
       headers: {
         Accept: "*/*",
-        "Accept-Encoding": "br, gzip, deflate",
-        "Accept-Language": "*",
         Connection: "close",
         Host: "echo.apifox.com",
         "Sec-Fetch-Mode": "cors",
-        "User-Agent": "undici",
-        "X-From-Alb": "true",
       },
       url: "http://echo.apifox.com/delay/5",
     });
@@ -164,20 +174,33 @@ describe("动态内容", () => {
   });
 });
 
-describe("获取请求进度", () => {
-  const host = "https://echo.apifox.com";
-  const iSrc = (api: string) => `${host}${api}`;
-
-  it.only("should get percentage on received", async () => {
+describe("接收器应当在请求过程中被调用", () => {
+  it("应该在请求过程中被调用并给出进度", async () => {
     const current = { percentage: 0 };
     await request({
-      api: iSrc("/image/svg"),
+      mode: "cors",
+      api: iSrc("/image/jpeg"),
       receiver: ({ percentage: cur }) => {
         const { percentage: pre } = current;
         current.percentage = Number(cur.toFixed(2));
         expect(cur >= pre && cur <= 100).toBeTruthy();
-        console.info(current.percentage);
       },
     });
+  });
+});
+
+describe("应当能在构建后添加中间件", () => {
+  it("中间件应当可以无视请求失败", async () => {
+    const driver = new Driver([]);
+
+    driver.use("/get", async (ctx, next) => {
+      try {
+        await next();
+      } catch (_) {}
+      ctx.res.body = "Hello, world!";
+    });
+
+    const { drive } = driver;
+    expect(await drive.get("/get")).toBe("Hello, world!");
   });
 });

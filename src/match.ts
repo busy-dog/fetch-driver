@@ -1,4 +1,4 @@
-import wcmatch from "wildcard-match";
+import { default as wcmatch } from "wildcard-match";
 
 export const isMatch = (path: string, pattern: string): boolean => {
   if (pattern === "*") return true;

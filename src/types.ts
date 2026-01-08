@@ -1,4 +1,4 @@
-import type DriveContext from "./context";
+import type { DriveContext } from "./context";
 
 export type Next = () => Promise<void>;
 
@@ -6,7 +6,7 @@ export type ReadableValue = ReadableStreamReadValueResult<
   Uint8Array<ArrayBufferLike>
 >;
 
-export abstract class DriveHooks {
+export abstract class DriverHooks {
   abstract beforeInit?(ctx: DriveContext): Promise<void>;
 
   abstract afterInit?(ctx: DriveContext): Promise<void>;
@@ -22,11 +22,28 @@ export abstract class DriveHooks {
 
 export type Middleware<T> = (context: T, next: Next) => Promise<void>;
 
-export type DriveMiddleware<T = unknown> = Middleware<DriveContext<T>>;
+export type MiddlewarePattern =
+  | string
+  | ((ctx: ReturnType<DriveContext["clone"]>) => boolean);
 
-export type UseDriveMiddleware<T = unknown> = [string, DriveMiddleware<T>];
+export type DriverMiddleware<T = unknown> = Middleware<DriveContext<T>>;
 
-export type DriveRequest = {
+export type UseDriverMiddleware<T = unknown> = [
+  MiddlewarePattern,
+  DriverMiddleware<T>,
+];
+
+export type DriverParams =
+  | UseDriverMiddleware[]
+  | {
+      use?: UseDriverMiddleware[];
+      hooks?: DriverHooks;
+      randomId?: () => string;
+      parser?: <T>() => BodyParseFunc<T>;
+    };
+
+export type DriverRequest = {
+  id: string;
   headers: Headers;
 } & Omit<RequestInit, "headers">;
 
@@ -51,27 +68,40 @@ export interface BodyParseFunc<T> {
   ): Promise<void>;
 }
 
+export interface DataStringifyFunc {
+  (
+    value: any,
+    replacer?: (this: any, key: string, value: any) => any,
+    space?: string | number,
+  ): string;
+  (
+    value: any,
+    replacer?: (number | string)[] | null,
+    space?: string | number,
+  ): string;
+}
+
 export type ExtraOptions<T> = {
   /** abort fetch before timeout */
   timeout?: number;
   /** use extra middleware in current fetch */
-  use?: UseDriveMiddleware[];
+  use?: DriverMiddleware<T>[];
   /** progress callback */
   receiver?: ReceiverFunc<T>;
   /** body parse */
   parse?: BodyParseFunc<T>;
-  /** json stringify */
-  stringify?: typeof JSON.stringify;
+  /** data stringify */
+  stringify?: DataStringifyFunc;
 };
 
-// call the drive by DriveOptions
-export type DriveOptions<T> = RequestInit &
+// call the drive by DriverOptions
+export type DriverOptions<T> = RequestInit &
   ExtraOptions<T> & {
     api: string;
     data?: object;
   };
 
-export interface DriveMethodFunc {
+export interface DriverMethodFunc {
   <T>(
     api: string,
     data?: object,
@@ -79,11 +109,11 @@ export interface DriveMethodFunc {
   ): Promise<T>;
 }
 
-export type DriveFuncAttrs = Record<Lowercase<FetchMethod>, DriveMethodFunc>;
+export type DriveFuncAttrs = Record<Lowercase<FetchMethod>, DriverMethodFunc>;
 
 // drive func overloading
 export interface DriveFunc extends DriveFuncAttrs {
-  <T>(opts: DriveOptions<T>): Promise<T>;
+  <T>(opts: DriverOptions<T>): Promise<T>;
   <T>(
     /** the fetch USVString */
     api: string,
@@ -95,7 +125,7 @@ export interface DriveFunc extends DriveFuncAttrs {
 }
 
 // drive func first param
-export type FirstParam<T> = string | DriveOptions<T>;
+export type FirstParam<T> = string | DriverOptions<T>;
 
 // drive context after fetch over
 export type FetchContext<T> = Required<DriveContext<T>>;

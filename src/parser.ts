@@ -1,7 +1,7 @@
-import { isFinite, isRawTextBody } from "./shared";
+import { isFinite } from "./shared";
 import { isFunction } from "remeda";
 
-import type DriveContext from "./context";
+import type { DriveContext } from "./context";
 import type { ReadableValue, ReceiverFunc } from "./types";
 
 /**
@@ -17,13 +17,41 @@ async function pump(
 ): Promise<void> {
   const res = await reader.read();
   if (res.done) {
-    controller.close(); // TODO: test
+    controller.close();
   } else {
     percentage?.(res);
     controller.enqueue(res.value);
     await pump(reader, controller, percentage);
-  } // TODO: test
+  }
 }
+
+export type RawTextBodyType =
+  | "txt"
+  | "css"
+  | "xml"
+  | "html"
+  | "plain"
+  | "richtext"
+  | "javascript";
+
+// #region rawtext
+/**
+ * 断言目标值是否为原始文本类型
+ */
+export function isRawTextBody(type?: string): type is RawTextBodyType {
+  switch (type) {
+    case "txt":
+    case "css":
+    case "xml":
+    case "html":
+    case "plain":
+    case "richtext":
+    case "javascript":
+      return true;
+  }
+  return false;
+}
+// #endregion rawtext
 
 export const parser =
   () =>
@@ -51,16 +79,17 @@ export const parser =
         const received = { bytes: 0 };
         const reader = body.getReader();
         const stream = new ReadableStream({
-          start(controller) {
-            pump(reader, controller, ({ value, done }) => {
+          async start(controller) {
+            await pump(reader, controller, ({ value, done }) => {
               received.bytes += value.length;
+              const percentage = (100 * received.bytes) / size;
               receiver({
-                done,
                 size,
                 value,
                 reader,
                 context,
-                percentage: (100 * received.bytes) / size,
+                percentage,
+                done: percentage === 100 || done,
               });
             });
           },
@@ -76,17 +105,12 @@ export const parser =
       return;
     }
 
-    if (res.type === "txt") {
-      context.res.body = (await response.text()) as T;
-      return;
-    }
-
     if (res.type === "json") {
       context.res.body = (await response.json()) as T;
       return;
     }
 
-    if (isRawTextBody(res.type ?? undefined)) {
+    if (!res.type || isRawTextBody(res.type)) {
       context.res.body = (await response.text()) as T;
       return;
     }
