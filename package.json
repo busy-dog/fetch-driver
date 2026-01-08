@@ -1,0 +1,67 @@
+{
+  "name": "@busymango/fetch-driver",
+  "version": "0.7.0",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "author": "mango",
+  "keywords": [
+    "json",
+    "http",
+    "async",
+    "fetch",
+    "promise",
+    "request",
+    "browser",
+    "fetch-json",
+    "javascript",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/busy-mango/fetch-driver"
+  },
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "import": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "vitest",
+    "build": "vite build",
+    "format": "eslint . --fix",
+    "test:browser": "vitest --config=vitest.config.ts"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@tsconfig/node23": "^23.0.4",
+    "@types/node": "^24.10.1",
+    "@typescript-eslint/utils": "^8.48.1",
+    "@vitest/browser": "^4.0.15",
+    "@vitest/browser-playwright": "^4.0.15",
+    "@vitest/eslint-plugin": "^1.5.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-import-x": "^4.16.1",
+    "eslint-plugin-playwright": "^2.4.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "jiti": "^2.6.1",
+    "type-fest": "^5.3.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.6",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^4.0.15"
+  },
+  "peerDependencies": {
+    "mime": "^4.0.0",
+    "remeda": "^2.23.2",
+    "wildcard-match": "^5.0.0",
+    "zod": "^4.1.13"
+  }
+}

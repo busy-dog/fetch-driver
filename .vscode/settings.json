@@ -1,0 +1,50 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
+  "files.associations": {
+    "*.css": "tailwindcss",
+    "*.ts.snap": "typescript"
+  },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    ".env": ".env, .env.*, env.d.ts",
+    "tsconfig.json": "tsconfig.*.json, global.d.ts",
+    ".gitconfig": ".gitignore, .gitattributes",
+    ".editorconfig": ".eslint*, eslint*, .prettier*, prettier*",
+    "vite.config.*": "jsconfig*, vitest.config.*, cypress.config.*, playwright.config.*, postcss.config.*, .browserslistrc, tailwind.config.ts, vite.*.ts",
+    "package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, .npmrc, .nvmrc, bun.*, bunfig.toml"
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "eslint.workingDirectories": [
+    { "pattern": "packages/*/" },
+    { "pattern": "example/" }
+  ],
+  "material-icon-theme.files.associations": {
+    ".env": "console",
+    ".env.*": "console",
+    "*.env": "console",
+    "*.env.*": "console",
+    ".env.keys": "console",
+    ".env.prod": "console",
+    ".env.local": "console"
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/*.code-search": true,
+    "**/cache": true,
+    "**/dist": true
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}
