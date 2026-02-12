@@ -43,6 +43,8 @@ export class Driver {
 
   private randomId: () => string;
 
+  private stringify = JSON.stringify;
+
   private parser: <T>() => BodyParseFunc<T>;
 
   private middlewares: UseDriverMiddleware[];
@@ -54,6 +56,10 @@ export class Driver {
     this.middlewares = params.use ?? [];
     this.parser = params.parser ?? parser;
     this.randomId = params.randomId ?? DriveContext.randomId;
+
+    if (params.stringify) {
+      this.stringify = params.stringify;
+    }
 
     methods.forEach((method) => {
       const name = method.toLowerCase() as Lowercase<typeof method>;
@@ -74,7 +80,7 @@ export class Driver {
     timeout,
     receiver,
     parse = this.parser<T>(),
-    stringify = JSON.stringify,
+    stringify = this.stringify,
     ...init
   }: DriverOptions<T>) => {
     const { middlewares, randomId } = this;

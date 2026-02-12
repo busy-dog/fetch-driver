@@ -40,6 +40,7 @@ export type DriverParams =
       hooks?: DriverHooks;
       randomId?: () => string;
       parser?: <T>() => BodyParseFunc<T>;
+      stringify?: DataStringifyFunc;
     };
 
 export type DriverRequest = {
