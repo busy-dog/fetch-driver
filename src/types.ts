@@ -64,6 +64,7 @@ export interface BodyParseFunc<T> {
     response: Response,
     context: DriveContext<T>,
     extra?: {
+      attchment?: boolean;
       receiver?: ReceiverFunc<T>;
     },
   ): Promise<void>;
@@ -85,6 +86,8 @@ export interface DataStringifyFunc {
 export type ExtraOptions<T> = {
   /** abort fetch before timeout */
   timeout?: number;
+  /** force parse response as attachment */
+  attchment?: boolean;
   /** use extra middleware in current fetch */
   use?: DriverMiddleware<T>[];
   /** progress callback */

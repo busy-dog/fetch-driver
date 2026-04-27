@@ -3,6 +3,21 @@ import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
+  plugins: [
+    dts({
+      outDir: "dist",
+      rollupTypes: false,
+      tsconfigPath: "./tsconfig.lib.json",
+    }),
+  ],
+  server: {
+    // proxy: {
+    //   "/api": {
+    //     target: "https://devapp-api.feedalyze.com",
+    //     changeOrigin: true,
+    //   },
+    // },
+  },
   build: {
     minify: true,
     sourcemap: true,
@@ -14,13 +29,6 @@ export default defineConfig({
       formats: ["es"],
     },
     rollupOptions: {
-      plugins: [
-        dts({
-          outDir: "dist",
-          rollupTypes: false,
-          tsconfigPath: "./tsconfig.lib.json",
-        }),
-      ],
       external: ["mime", "remeda", "wildcard-match"],
       output: {
         dir: "dist",

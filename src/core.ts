@@ -78,6 +78,7 @@ export class Driver {
     use,
     data,
     timeout,
+    attchment,
     receiver,
     parse = this.parser<T>(),
     stringify = this.stringify,
@@ -120,7 +121,7 @@ export class Driver {
       context.decodeHeader(res);
 
       await hooks?.beforeParse?.(context);
-      await parse(res, context, { receiver });
+      await parse(res, context, { attchment, receiver });
       await hooks?.afterParse?.(context);
     });
 

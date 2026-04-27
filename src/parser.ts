@@ -59,16 +59,18 @@ export const parser =
     response: Response,
     context: DriveContext<T>,
     params: {
+      attchment?: boolean;
       receiver?: ReceiverFunc<T>;
     } = {},
   ) => {
     const { res } = context;
+    const { attchment = false } = params;
     const { body, ok, headers, status } = response;
 
     context.res.status = status;
     context.res.headers = headers;
     const disposition = headers.get("Content-Disposition");
-    const isAttchment = disposition?.includes("attachment");
+    const isAttchment = attchment || disposition?.includes("attachment");
 
     if (ok) {
       const { receiver } = params;

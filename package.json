@@ -35,7 +35,7 @@
     "dev": "vitest",
     "build": "vite build",
     "format": "eslint . --fix",
-    "test:browser": "vitest --config=vitest.config.ts"
+    "test:browser": "bunx playwright install && vitest --config=vitest.config.ts"
   },
   "publishConfig": {
     "access": "public"
@@ -55,7 +55,7 @@
     "jiti": "^2.6.1",
     "type-fest": "^5.3.0",
     "typescript": "^5.9.3",
-    "vite": "^7.2.6",
+    "vite": "^8.0.10",
     "vite-plugin-dts": "^4.5.4",
     "vitest": "^4.0.15"
   },
