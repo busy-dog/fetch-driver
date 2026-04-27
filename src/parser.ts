@@ -100,7 +100,7 @@ export const parser =
       }
     }
 
-    if (isAttchment) {
+    if (isAttchment || res.type === "xlsx") {
       context.res.body = (await response.blob()) as T;
       return;
     }
