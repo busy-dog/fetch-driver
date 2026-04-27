@@ -24,7 +24,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/busy-mango/fetch-driver"
+    "url": "git+https://github.com/busy-mango/fetch-driver.git"
   },
   "exports": {
     "types": "./dist/index.d.ts",
